@@ -2,9 +2,6 @@ name: Auto Update
 
 on:
     workflow_dispatch:
-    push:
-        branches:
-            - "main"
     schedule:
         - cron: "0 */4 * * *"
 
@@ -19,35 +16,46 @@ jobs:
     auto-update:
         runs-on: windows-latest
         steps:
-            - name: Checkout Self
-              uses: actions/checkout@main
+            - name: Checkout repository
+              uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
               with:
                   fetch-depth: 2
 
-            - name: Run Tests
+            - name: Install test dependency
+              shell: pwsh
+              run: Install-Module Pester -RequiredVersion 6.2.0 -Scope CurrentUser -Force
+
+            - name: Run tests
+              shell: pwsh
+              run: .\tests\Run-Tests.ps1
+
+            - name: Aggregate buckets
+              shell: pwsh
+              run: .\bin\auto-update.ps1
+
+            - name: Commit generated output
               shell: pwsh
               run: |
-                  Write-Host "Running test suite..." -ForegroundColor Cyan
-                  & .\tests\Run-Tests.ps1
-                  if ($LASTEXITCODE -ne 0) {
-                    Write-Error "Tests failed. Aborting update."
-                    exit 1
-                  }
-
-            - name: Aggregate and update
-              shell: pwsh
-              run: |
-                  .\bin\auto-update.ps1
-
-                  # Configure git
                   git config user.email "github-actions@github.com"
                   git config user.name "github-actions[bot]"
-                  git add --all
+                  git add -- bucket scripts
+                  git diff --cached --quiet
 
-                  # Commit and push if there are changes
-                  if ([string]::IsNullOrEmpty((git status --porcelain))) {
-                    echo "No changes to commit"
-                  } else {
-                    git commit -m "Updated on $(Get-Date -Format "yyyy-MM-dd HH:mm K")"
-                    git push origin main
+                  if ($LASTEXITCODE -eq 0) {
+                      Write-Host "No generated changes to commit."
+                      exit 0
+                  }
+
+                  if ($LASTEXITCODE -ne 1) {
+                      throw "Unable to inspect the staged changes."
+                  }
+
+                  git commit -m "Updated on $(Get-Date -Format 'yyyy-MM-dd HH:mm K')"
+                  if ($LASTEXITCODE -ne 0) {
+                      throw "Unable to commit the generated output."
+                  }
+
+                  git push origin main
+                  if ($LASTEXITCODE -ne 0) {
+                      throw "Unable to push the generated output."
                   }

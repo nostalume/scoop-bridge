@@ -1,6 +1,5 @@
-[CmdletBinding()]
-param (
-	[Switch]$DryRun
+param(
+    [switch]$DryRun
 )
 
 . "$PSScriptRoot\lib.ps1"

@@ -4,15 +4,15 @@
     "homepage": "https://cygwin.com",
     "license": {
         "identifier": "GPL-3.0-or-later,X11,Public Domain",
-        "url": "mirrors.tuna.tsinghua.edu.cn/cygwin/faq.html#faq.what.free"
+        "url": "https://mirrors.tuna.tsinghua.edu.cn/cygwin/faq.html#faq.what.free"
     },
     "architecture": {
         "64bit": {
-            "url": "mirrors.tuna.tsinghua.edu.cn/cygwin/setup/setup-2.939.x86_64.exe#/cygwin-setup.exe",
+            "url": "https://mirrors.tuna.tsinghua.edu.cn/cygwin/setup/setup-2.939.x86_64.exe#/cygwin-setup.exe",
             "hash": "sha512:e5a8ad58eeec0b3d9800e75783234ec6e788147d0f428aeeb8f7ad4a5f187e94b6a6f4b589f850266fb0a55d81e6d295a4a3cd2678accab5d062fc56216bf875"
         },
         "32bit": {
-            "url": "mirrors.tuna.tsinghua.edu.cn/cygwin/setup/setup-2.939.x86.exe#/cygwin-setup.exe",
+            "url": "https://mirrors.tuna.tsinghua.edu.cn/cygwin/setup/setup-2.939.x86.exe#/cygwin-setup.exe",
             "hash": "sha512:5d02c14f7d9b0dfa07eb9b64445b5bd2863cf724739b78db0b2a124561acb7c434d7edadf2e3ba58395dd95e86cd17267777278e246c35a4cfbfc122ee1742de"
         }
     },
@@ -64,20 +64,20 @@
         "script": "unlink_persist_data @{ persist = @('root', 'packages') } $dir"
     },
     "checkver": {
-        "url": "mirrors.tuna.tsinghua.edu.cn/cygwin/setup/?C=M;O=D",
+        "url": "https://mirrors.tuna.tsinghua.edu.cn/cygwin/setup/?C=M;O=D",
         "regex": "setup-([\\d.]+)\\.x86_64"
     },
     "autoupdate": {
         "architecture": {
             "64bit": {
-                "url": "mirrors.tuna.tsinghua.edu.cn/cygwin/setup/setup-$version.x86_64.exe#/cygwin-setup.exe"
+                "url": "https://mirrors.tuna.tsinghua.edu.cn/cygwin/setup/setup-$version.x86_64.exe#/cygwin-setup.exe"
             },
             "32bit": {
-                "url": "mirrors.tuna.tsinghua.edu.cn/cygwin/setup/setup-$version.x86.exe#/cygwin-setup.exe"
+                "url": "https://mirrors.tuna.tsinghua.edu.cn/cygwin/setup/setup-$version.x86.exe#/cygwin-setup.exe"
             }
         },
         "hash": {
-            "url": "mirrors.tuna.tsinghua.edu.cn/cygwin/setup/sha512.sum"
+            "url": "https://mirrors.tuna.tsinghua.edu.cn/cygwin/setup/sha512.sum"
         }
     }
 }

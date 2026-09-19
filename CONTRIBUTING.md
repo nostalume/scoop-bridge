@@ -1,6 +1,6 @@
-# Contributing to Scoop-CN
+# Contributing to ScoopBridge
 
-Thank you for your interest in contributing to scoop-cn! This document provides guidelines for contributing.
+Thank you for your interest in contributing to ScoopBridge. This document provides guidelines for contributing.
 
 ## Types of Contributions
 
@@ -48,18 +48,20 @@ $pattern = 'your-regex-here'
 $testUrl = 'https://example.com/path/to/file'
 $testUrl -match $pattern
 
-# Test full replacement
-.\bin\auto-update.ps1 -WhatIf
+# Test the full aggregation without publishing generated files
+.\bin\auto-update.ps1 -DryRun
 ```
 
 ## Code Style
 
 ### PowerShell
 
-- Use tabs for indentation
+- Use 4 spaces for indentation
 - Use PascalCase for function names
 - Use camelCase for variables
-- Add `[CmdletBinding()]` to functions
+- Prefer direct PowerShell functions, hashtables, and `[PSCustomObject]` values
+- Add `[CmdletBinding()]` only when advanced-function behavior is required
+- Check `$LASTEXITCODE` after native commands
 - Use `$null` checks, not `$var -eq $null`
 
 ### YAML (Workflows)

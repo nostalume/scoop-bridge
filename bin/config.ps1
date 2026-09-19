@@ -106,8 +106,8 @@
         },
         @{
             description = "Mirror: Cygwin"
-            find        = '(https?://)?(www\.)?cygwin\.com/'
-            replace     = '${Tsinghua}/cygwin/'
+            find        = '(https?://)(?:www\.)?cygwin\.com/'
+            replace     = '${1}${Tsinghua}/cygwin/'
             enabled     = $true
         },
         @{
@@ -199,24 +199,6 @@
             find        = 'download\.typora\.io'
             replace     = 'downloads.typoraio.cn'
             enabled     = $true
-        },
-        @{
-            description = "Fix: Internal 'scripts' paths - DISABLED (removed hardcoded bucket name)"
-            find        = '(bucketsdir\\\\).+(\\\\scripts)'
-            replace     = '$1scoop-cn$2'
-            enabled     = $false
-        },
-        @{
-            description = "Fix: Internal 'suggest' paths - DISABLED (removed hardcoded bucket name)"
-            find        = '\"main/|\"extras/|\"versions/|\"nirsoft/|\"sysinternals/|\"php/|\"nerd-fonts/|\"nonportable/|\"java/|\"games/'
-            replace     = '"scoop-cn/'
-            enabled     = $false
-        },
-        @{
-            description = "Fix: Internal 'depends' paths - DISABLED (removed hardcoded bucket name)"
-            find        = '\"depends":\s*\"(scoop\-cn/)?'
-            replace     = '"depends": "scoop-cn/'
-            enabled     = $false
         }
     )
 
@@ -224,7 +206,6 @@
     postprocess  = @(
         @{
             description = "charmbracelet: Rename .json to wishlist.json"
-            repo        = "charmbracelet/scoop-bucket"
             action      = "rename"
             from        = ".json"
             to          = "wishlist.json"

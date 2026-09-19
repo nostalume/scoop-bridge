@@ -1,14 +1,15 @@
 # Configuration Guide
 
-This document describes the configuration system for scoop-cn.
+This document describes the configuration system for ScoopBridge.
 
 ## Overview
 
-The configuration is defined in [`bin/config.ps1`](../bin/config.ps1) as a PowerShell hashtable containing three main sections:
+The configuration is defined in [`bin/config.ps1`](../bin/config.ps1) as a PowerShell hashtable containing four main sections:
 
 1. **Repositories** - Upstream bucket sources
 2. **Proxies** - Mirror/proxy URL definitions
 3. **Rules** - URL replacement patterns
+4. **Postprocess** - Explicit file operations performed before validation
 
 ## Repositories
 
@@ -23,7 +24,9 @@ repositories = @(
 )
 ```
 
-Each repository is cloned and its manifests are aggregated into the local `bucket/` directory.
+Each repository is cloned into an isolated workspace. Manifests are aggregated,
+rewritten, and validated there before the generated `bucket/` and `scripts/`
+directories replace the currently published output.
 
 ## Proxies
 
@@ -101,7 +104,13 @@ $matches[1]  # Should contain 'path/to/file'
 
 ## Rule Priority
 
-Rules are applied in order. Earlier rules take precedence if multiple rules match the same URL.
+Rules are applied in order, so a later rule sees the output produced by earlier rules.
+
+## Post-processing
+
+Post-processing is reserved for explicit file operations that cannot be expressed
+as URL replacements. The current `rename` action moves a staged manifest to its
+published name; it does not leave both names in the bucket.
 
 ## Disabling Rules
 

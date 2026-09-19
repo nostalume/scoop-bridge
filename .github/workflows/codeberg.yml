@@ -1,23 +1,24 @@
 name: Mirror to Codeberg
 
 on:
-  push:
-    branches:
-      - "main"
-  schedule:
-      - cron: "0 */4 * * *"
+    push:
+        branches:
+            - "main"
+
+permissions:
+    contents: read
 
 jobs:
-  mirror:
-    runs-on: ubuntu-latest
+    mirror:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  fetch-depth: 0
 
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - uses: yesolutions/mirror-action@v0.7.0
-        with:
-          REMOTE: 'ssh://git@codeberg.org/nostalgia/scoop-cn.git'
-          GIT_SSH_PRIVATE_KEY: ${{ secrets.CODEBERG }}
-          GIT_SSH_NO_VERIFY_HOST: "true"
+            - name: Mirror repository
+              uses: yesolutions/mirror-action@1708f16cdb28634fd3ba10c5c79abc91f5578a14 # v0.7.0
+              with:
+                  REMOTE: "ssh://git@codeberg.org/nostalgia/scoop-bridge.git"
+                  GIT_SSH_PRIVATE_KEY: ${{ secrets.CODEBERG }}

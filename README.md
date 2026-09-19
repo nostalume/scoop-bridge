@@ -1,158 +1,80 @@
 <div align="center">
 
-# Scoop Buckets Mirrors
+# ScoopBridge
 
 **[中文](README-cn.md) | [English](README.md)**
 
-![GitHub Actions Workflow Status](https://github.com/lvyuemeng/scoop-cn/actions/workflows/auto-update.yml/badge.svg)
+[![Verify](https://github.com/nostalume/scoop-bridge/actions/workflows/verify.yml/badge.svg)](https://github.com/nostalume/scoop-bridge/actions/workflows/verify.yml)
+[![Auto Update](https://github.com/nostalume/scoop-bridge/actions/workflows/auto-update.yml/badge.svg)](https://github.com/nostalume/scoop-bridge/actions/workflows/auto-update.yml)
 
 </div>
 
-## Motivation
-
-Scoop is a powerful and lightweight Windows package manager that simplifies software installation. However, users in regions with network restrictions (particularly in China) often encounter difficulties downloading packages from GitHub and other external sources.
-
-This project provides mirrored bucket repositories with optimized download URLs, making it seamless to install and manage packages even behind network firewalls.
-
-**If you don't experience any download issues with Scoop**, you may not need to use this project.
+ScoopBridge aggregates widely used Scoop buckets and rewrites selected download
+URLs to mirror-aware routes. It is intended for users whose access to upstream
+package hosts is slow or unreliable. The compatible local bucket alias remains
+`spc`.
 
 ## Features
 
-- **Aggregated Buckets**: Includes mirrors for `main extras versions nirsoft sysinternals php nerd-fonts nonportable java games charmbracelet winspec spx shed`
-- **Automatic Updates**: Mirrors are refreshed every 4 hours
-- **Proxy Support**: Built-in support for Chinese proxy mirrors
-- **Easy Migration**: Tools to migrate existing installations to use mirrored buckets
+- Aggregates `main`, `extras`, `versions`, `nirsoft`, `sysinternals`, `php`,
+  `nerd-fonts`, `nonportable`, `java`, `games`, `charmbracelet`, `winspec`,
+  `spx`, and `shed`.
+- Refreshes generated manifests every four hours.
+- Builds in a staging directory and publishes only validated JSON manifests.
+- Keeps an existing bucket checkout and updates its remote in place.
+- Migrates installed-app metadata only when explicitly requested, with backups.
 
-## Usage
+## Quick start
 
-### Quick Start
-
-Once Scoop is installed, you can start using this bucket immediately:
+If Scoop is already installed:
 
 ```powershell
-# Add the bucket
-scoop bucket add spc https://gh-proxy.org/https://github.com/lvyuemeng/scoop-cn
-
-# Search for packages
-scoop search <package-name>
-
-# Install packages
+scoop bucket add spc https://gh-proxy.org/https://github.com/nostalume/scoop-bridge
 scoop install spc/<package-name>
 ```
 
-### Migrate Existing Apps
-
-If you already have apps installed through other buckets, you can migrate them to use our mirrors:
+To install or configure ScoopBridge with the bundled installer:
 
 ```powershell
-# Migrate all installed apps to use the spc bucket
-Get-ChildItem -Path "$env:USERPROFILE\scoop\apps" -Recurse -Filter "install.json" | ForEach-Object {
-    $content = Get-Content $_.FullName -Raw
-    if ($content -match '"bucket":\s*"(main|extras|versions|nirsoft|sysinternals|php|nerd-fonts|nonportable|java|games|scoop-bucket|winspec|spx|shed)"') {
-        $content -replace '"bucket":\s*"(main|extras|versions|nirsoft|sysinternals|php|nerd-fonts|nonportable|java|games|scoop-bucket|winspec|spx|shed)"', '"bucket": "spc"' |
-            Set-Content $_.FullName -Force
-    }
-}
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/nostalume/scoop-bridge/main/installer.ps1' -OutFile "$env:TEMP\scoop-bridge.ps1"
+& "$env:TEMP\scoop-bridge.ps1" -UseProxy
 ```
 
-### Configure Upstream Mirrors
+Use direct upstream routes with `-UseProxy:$false`. The installer prompts when
+the option is omitted.
 
-You can also point existing Scoop buckets at proxy mirrors:
+### Installer options
+
+| Parameter | Purpose | Default |
+| --- | --- | --- |
+| `-UseProxy` | Use mirror-aware routes | Prompt |
+| `-ScoopDir` | Scoop installation directory | `$env:USERPROFILE\scoop` |
+| `-BucketName` | Local ScoopBridge alias | `spc` |
+| `-MigrateInstalledApps` | Migrate supported bucket references and retain backups | Off |
+| `-WhatIf` | Preview installer changes | Off |
+
+Preview an explicit migration before applying it:
 
 ```powershell
-# Change Scoop core repository upstream
-scoop config SCOOP_REPO https://gitee.com/scoop-installer/scoop
-
-# Change Main bucket upstream
-git -C "$env:USERPROFILE\scoop\buckets\main" remote set-url origin https://gh-proxy.org/https://github.com/ScoopInstaller/Main
-
-# Change scoop-cn bucket upstream
-git -C "$env:USERPROFILE\scoop\buckets\spc" remote set-url origin https://gh-proxy.org/https://github.com/lvyuemeng/scoop-cn
+& "$env:TEMP\scoop-bridge.ps1" -UseProxy -MigrateInstalledApps -WhatIf
+& "$env:TEMP\scoop-bridge.ps1" -UseProxy -MigrateInstalledApps
 ```
 
-## Installation
+## Development
 
-### Prerequisites
-
-- **PowerShell** 5.1 or higher
-- **Execution Policy** must allow script execution
+URL replacement rules live in [`bin/config.ps1`](bin/config.ps1); their format
+is documented in [`docs/configuration.md`](docs/configuration.md).
 
 ```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-### Method 1: Automated Installation (Recommended)
-
-Use the provided `installer.ps1` script for a fully automated setup:
-
-```powershell
-# Download the installer
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/lvyuemeng/scoop-cn/main/installer.ps1" -OutFile "$env:TEMP\installer.ps1"
-
-# Run with default settings (will prompt for proxy usage)
-& "$env:TEMP\installer.ps1"
-
-# Use Chinese proxy mirrors automatically
-& "$env:TEMP\installer.ps1" -UseProxy
-
-# Use proxy with a custom bucket name
-& "$env:TEMP\installer.ps1" -UseProxy -BucketName my-bucket
-```
-
-#### Installer Parameters
-
-| Parameter | Description | Default |
-| --------- | ----------- | ------- |
-| `-UseProxy` | Use Chinese proxy mirrors for installation | Prompt user |
-| `-ScoopDir` | Custom Scoop installation directory | `$env:USERPROFILE\scoop` |
-| `-BucketName` | Alias for the scoop-cn bucket | `spc` |
-
-### Method 2: Manual Installation
-
-```powershell
-# Users with direct internet access
-Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
-
-# Users behind network restrictions (China)
-$tmp = "$env:TEMP\scoop-install.ps1"
-Invoke-WebRequest -Uri https://scoop.201704.xyz -OutFile $tmp
-& $tmp
-Remove-Item $tmp -Force
-```
-
-After installation, add the bucket:
-
-```powershell
-scoop bucket add spc https://gh-proxy.org/https://github.com/lvyuemeng/scoop-cn
-```
-
-## Configuration
-
-For details about URL replacement rules see [`bin/config.ps1`](./bin/config.ps1).
-
-## Contributing
-
-Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) before submitting changes.
-
-### Ways to Contribute
-
-- **Add New Mirror Rules**: Help us cover more packages with proxy support
-- **Bug Fixes**: Improve existing URL replacement rules
-- **Documentation**: Enhance guides and examples
-- **Testing**: Add test coverage for new rules
-
-### Testing
-
-Run the test suite before submitting:
-
-```powershell
+# Run the test suite (requires Pester 5 or newer)
 .\tests\Run-Tests.ps1
+
+# Exercise the complete aggregation without publishing generated output
+.\bin\auto-update.ps1 -DryRun
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a change.
 
 ## License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=lvyuemeng/scoop-cn&type=date&legend=top-left)](https://www.star-history.com/#lvyuemeng/scoop-cn&type=date&legend=top-left)
+ScoopBridge is available under the [MIT License](LICENSE).

@@ -1,158 +1,76 @@
 <div align="center">
 
-# Scoop Buckets Mirrors
+# ScoopBridge
 
 **[中文](README-cn.md) | [English](README.md)**
 
-![GitHub Actions Workflow Status](https://github.com/lvyuemeng/scoop-cn/actions/workflows/auto-update.yml/badge.svg)
+[![验证](https://github.com/nostalume/scoop-bridge/actions/workflows/verify.yml/badge.svg)](https://github.com/nostalume/scoop-bridge/actions/workflows/verify.yml)
+[![自动更新](https://github.com/nostalume/scoop-bridge/actions/workflows/auto-update.yml/badge.svg)](https://github.com/nostalume/scoop-bridge/actions/workflows/auto-update.yml)
 
 </div>
 
-## 动机
-
-Scoop 是一个功能强大且轻量级的 Windows 包管理工具，能简化软件的安装和管理流程。然而，由于网络限制，从 GitHub 等外部源下载软件包时常常遇到困难。
-
-本项目提供经过优化的镜像软件源，使用经过替换的下载链接，让您即使在网络受限的环境下也能顺畅地安装和管理软件包。
-
-**如果您在使用 Scoop 时没有遇到任何下载问题**，则不一定需要使用本项目。
+ScoopBridge 聚合常用 Scoop 软件源，并将指定下载地址改写为镜像友好的线路，适合访问上游软件源较慢或不稳定的用户。为保持兼容，本地软件源别名仍为 `spc`。
 
 ## 特性
 
-- **聚合软件源**：涵盖 `main extras versions nirsoft sysinternals php nerd-fonts nonportable java games charmbracelet winspec spx shed` 的镜像
-- **自动更新**：镜像每 4 小时刷新一次
-- **代理支持**：内置中国代理镜像支持
-- **轻松迁移**：提供工具将现有安装迁移至镜像源
+- 聚合 `main`、`extras`、`versions`、`nirsoft`、`sysinternals`、`php`、
+  `nerd-fonts`、`nonportable`、`java`、`games`、`charmbracelet`、`winspec`、
+  `spx` 和 `shed`。
+- 每四小时刷新生成的清单。
+- 先在暂存目录生成并校验 JSON，全部成功后才发布。
+- 已存在的软件源不会被删除，而是在原位置更新远端地址。
+- 仅在明确请求时迁移已安装应用的元数据，并为原文件保留备份。
 
-## 使用方法
+## 快速开始
 
-### 快速开始
-
-安装 Scoop 后，您可以立即使用本软件源：
+如果已经安装 Scoop：
 
 ```powershell
-# 添加软件源
-scoop bucket add spc https://gh-proxy.org/https://github.com/lvyuemeng/scoop-cn
-
-# 搜索软件包
-scoop search <软件包名称>
-
-# 安装软件包
+scoop bucket add spc https://gh-proxy.org/https://github.com/nostalume/scoop-bridge
 scoop install spc/<软件包名称>
 ```
 
-### 迁移现有应用
-
-如果您已经通过其他软件源安装了应用，可以将其迁移至本镜像：
+也可以使用仓库提供的安装脚本安装或配置 ScoopBridge：
 
 ```powershell
-# 将所有已安装的应用迁移至 spc 软件源
-Get-ChildItem -Path "$env:USERPROFILE\scoop\apps" -Recurse -Filter "install.json" | ForEach-Object {
-    $content = Get-Content $_.FullName -Raw
-    if ($content -match '"bucket":\s*"(main|extras|versions|nirsoft|sysinternals|php|nerd-fonts|nonportable|java|games|scoop-bucket|winspec|spx|shed)"') {
-        $content -replace '"bucket":\s*"(main|extras|versions|nirsoft|sysinternals|php|nerd-fonts|nonportable|java|games|scoop-bucket|winspec|spx|shed)"', '"bucket": "spc"' |
-            Set-Content $_.FullName -Force
-    }
-}
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/nostalume/scoop-bridge/main/installer.ps1' -OutFile "$env:TEMP\scoop-bridge.ps1"
+& "$env:TEMP\scoop-bridge.ps1" -UseProxy
 ```
 
-### 配置上游镜像
+使用 `-UseProxy:$false` 可直接连接上游；省略该选项时，安装脚本会交互询问。
 
-您还可以将现有 Scoop 软件源的上游链接指向代理镜像：
+### 安装参数
+
+| 参数 | 用途 | 默认值 |
+| --- | --- | --- |
+| `-UseProxy` | 使用镜像友好线路 | 交互询问 |
+| `-ScoopDir` | Scoop 安装目录 | `$env:USERPROFILE\scoop` |
+| `-BucketName` | ScoopBridge 本地别名 | `spc` |
+| `-MigrateInstalledApps` | 迁移受支持的软件源引用并保留备份 | 关闭 |
+| `-WhatIf` | 预览安装脚本的更改 | 关闭 |
+
+建议先预览迁移，再明确执行：
 
 ```powershell
-# 修改 Scoop 核心仓库上游
-scoop config SCOOP_REPO https://gitee.com/scoop-installer/scoop
-
-# 修改 Main 软件源上游
-git -C "$env:USERPROFILE\scoop\buckets\main" remote set-url origin https://gh-proxy.org/https://github.com/ScoopInstaller/Main
-
-# 修改 scoop-cn 软件源上游
-git -C "$env:USERPROFILE\scoop\buckets\spc" remote set-url origin https://gh-proxy.org/https://github.com/lvyuemeng/scoop-cn
+& "$env:TEMP\scoop-bridge.ps1" -UseProxy -MigrateInstalledApps -WhatIf
+& "$env:TEMP\scoop-bridge.ps1" -UseProxy -MigrateInstalledApps
 ```
 
-## 安装
+## 开发
 
-### 前提条件
-
-- **PowerShell** 5.1 或更高版本
-- **执行策略** 必须允许脚本执行
+URL 替换规则位于 [`bin/config.ps1`](bin/config.ps1)，格式说明见
+[`docs/configuration.md`](docs/configuration.md)。
 
 ```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-### 方法一：自动化安装（推荐）
-
-使用提供的 `installer.ps1` 脚本进行全自动安装：
-
-```powershell
-# 下载安装脚本
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/lvyuemeng/scoop-cn/main/installer.ps1" -OutFile "$env:TEMP\installer.ps1"
-
-# 使用默认设置运行（会提示是否使用代理）
-& "$env:TEMP\installer.ps1"
-
-# 自动使用中国代理镜像
-& "$env:TEMP\installer.ps1" -UseProxy
-
-# 使用代理并自定义软件源名称
-& "$env:TEMP\installer.ps1" -UseProxy -BucketName my-bucket
-```
-
-#### 安装脚本参数
-
-| 参数 | 说明 | 默认值 |
-| ---- | ---- | ------ |
-| `-UseProxy` | 使用中国代理镜像进行安装 | 提示用户选择 |
-| `-ScoopDir` | 自定义 Scoop 安装目录 | `$env:USERPROFILE\scoop` |
-| `-BucketName` | scoop-cn 软件源别名 | `spc` |
-
-### 方法二：手动安装
-
-```powershell
-# 适用于网络正常的用户
-Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
-
-# 适用于受网络限制的用户（中国大陆）
-$tmp = "$env:TEMP\scoop-install.ps1"
-Invoke-WebRequest -Uri https://scoop.201704.xyz -OutFile $tmp
-& $tmp
-Remove-Item $tmp -Force
-```
-
-安装后，添加本软件源：
-
-```powershell
-scoop bucket add spc https://gh-proxy.org/https://github.com/lvyuemeng/scoop-cn
-```
-
-## 配置
-
-有关 URL 替换规则的更多详细信息，请参阅[`bin/config.ps1`](./bin/config.ps1)。
-
-## 贡献
-
-欢迎贡献代码！提交更改前请阅读我们的[贡献指南](CONTRIBUTING.md)。
-
-### 贡献方式
-
-- **添加新的镜像规则**：帮助我们覆盖更多需要代理支持的软件包
-- **错误修复**：改进现有的 URL 替换规则
-- **文档**：完善指南和示例
-- **测试**：为新规则添加测试覆盖
-
-### 测试
-
-提交前请运行测试套件：
-
-```powershell
+# 运行测试（需要 Pester 5 或更高版本）
 .\tests\Run-Tests.ps1
+
+# 完整执行聚合流程，但不发布生成结果
+.\bin\auto-update.ps1 -DryRun
 ```
+
+提交更改前，请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 许可证
 
-本项目基于 MIT 许可证授权 — 请参阅 [LICENSE](LICENSE) 文件了解详情。
-
-## Star 历史
-
-[![Star History Chart](https://api.star-history.com/svg?repos=lvyuemeng/scoop-cn&type=date&legend=top-left)](https://www.star-history.com/#lvyuemeng/scoop-cn&type=date&legend=top-left)
+ScoopBridge 使用 [MIT License](LICENSE)。

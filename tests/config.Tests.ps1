@@ -29,26 +29,6 @@ Describe "Config Structure" {
     }
 }
 
-Describe "Hardcoded Bucket Name Rules" {
-    It "Should have scripts path rule disabled" {
-        $rule = $script:Config.rules | Where-Object { $_.description -like "*scripts*" }
-        $rule | Should -Not -BeNullOrEmpty
-        $rule.enabled | Should -Be $false
-    }
-
-    It "Should have suggest rule disabled" {
-        $rule = $script:Config.rules | Where-Object { $_.description -like "*suggest*" }
-        $rule | Should -Not -BeNullOrEmpty
-        $rule.enabled | Should -Be $false
-    }
-
-    It "Should have depends rule disabled" {
-        $rule = $script:Config.rules | Where-Object { $_.description -like "*depends*" }
-        $rule | Should -Not -BeNullOrEmpty
-        $rule.enabled | Should -Be $false
-    }
-}
-
 Describe "Cygwin Regex Rule" {
     It "Should have Cygwin rule enabled" {
         $rule = $script:Config.rules | Where-Object { $_.description -like "*Cygwin*" }
@@ -60,6 +40,13 @@ Describe "Cygwin Regex Rule" {
         $rule = $script:Config.rules | Where-Object { $_.description -like "*Cygwin*" }
         'http://cygwin.com/packages' | Should -Match $rule.find
         'https://www.cygwin.com/mirror' | Should -Match $rule.find
+    }
+
+    It "Should preserve an absolute HTTPS URL after replacement" {
+        $rule = $script:Config.rules | Where-Object { $_.description -like "*Cygwin*" }
+        $replacement = $rule.replace -replace '\$\{Tsinghua\}', $script:Config.proxies.Tsinghua
+        $result = 'https://www.cygwin.com/setup/setup.exe' -replace $rule.find, $replacement
+        $result | Should -Be 'https://mirrors.tuna.tsinghua.edu.cn/cygwin/setup/setup.exe'
     }
 
     It "Should NOT match other domains with cygwin in path" {

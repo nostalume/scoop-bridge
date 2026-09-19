@@ -6,3 +6,4 @@
 .vscode
 test.*
 *cache*
+/.scoopbridge-work-*
