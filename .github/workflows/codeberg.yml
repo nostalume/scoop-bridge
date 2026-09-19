@@ -17,8 +17,28 @@ jobs:
               with:
                   fetch-depth: 0
 
+            - name: Verify Codeberg host key
+              id: codeberg-host
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  host_key="$(ssh-keyscan -T 10 -t ed25519 codeberg.org 2>/dev/null | head -n 1)"
+                  fingerprint="$(printf '%s\n' "$host_key" | ssh-keygen -lf - | awk '{ print $2 }')"
+
+                  if [[ "$fingerprint" != "SHA256:mIlxA9k46MmM6qdJOdMnAQpzGxF4WIVVL+fj+wZbw0g" ]]; then
+                      echo "Unexpected Codeberg SSH fingerprint: $fingerprint" >&2
+                      exit 1
+                  fi
+
+                  {
+                      echo "known-hosts<<EOF"
+                      printf '%s\n' "$host_key"
+                      echo "EOF"
+                  } >> "$GITHUB_OUTPUT"
+
             - name: Mirror repository
               uses: yesolutions/mirror-action@1708f16cdb28634fd3ba10c5c79abc91f5578a14 # v0.7.0
               with:
                   REMOTE: "ssh://git@codeberg.org/nostalgia/scoop-bridge.git"
                   GIT_SSH_PRIVATE_KEY: ${{ secrets.CODEBERG }}
+                  GIT_SSH_KNOWN_HOSTS: ${{ steps.codeberg-host.outputs.known-hosts }}

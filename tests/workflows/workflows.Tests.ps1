@@ -39,13 +39,15 @@ Describe 'Workflow security and responsibilities' {
 
     It 'does not disable SSH host verification' {
         $script:Codeberg | Should -Not -Match 'GIT_SSH_NO_VERIFY_HOST'
+        $script:Codeberg | Should -Match 'GIT_SSH_KNOWN_HOSTS'
+        $script:Codeberg | Should -Match 'SHA256:mIlxA9k46MmM6qdJOdMnAQpzGxF4WIVVL\+fj\+wZbw0g'
     }
 
     It 'verifies Windows PowerShell and PowerShell 7 on pushes and pull requests' {
         $script:Verify | Should -Match '(?m)^\s+push:'
         $script:Verify | Should -Match '(?m)^\s+pull_request:'
-        $script:Verify | Should -Match '(?m)^\s+- powershell$'
-        $script:Verify | Should -Match '(?m)^\s+- pwsh$'
+        $script:Verify | Should -Match '(?m)^\s+shell: powershell$'
+        $script:Verify | Should -Match '(?m)^\s+shell: pwsh$'
     }
 
     It 'mirrors only after a push' {
