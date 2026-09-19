@@ -2,6 +2,10 @@
 
 BeforeAll {
     . (Join-Path (Join-Path $PSScriptRoot '..') 'installer.ps1')
+
+    function scoop {
+        throw 'The Scoop test stub must be mocked before use.'
+    }
 }
 
 Describe 'Invoke-ScoopBridgeSetup' {
