@@ -11,18 +11,26 @@ permissions:
 jobs:
     mirror:
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         steps:
             - name: Checkout repository
               uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
               with:
                   fetch-depth: 0
 
-            - name: Verify Codeberg host key
-              id: codeberg-host
+            - name: Mirror repository
               shell: bash
+              env:
+                  CODEBERG_SSH_KEY: ${{ secrets.CODEBERG }}
               run: |
                   set -euo pipefail
-                  host_key="$(ssh-keyscan -T 10 -t ed25519 codeberg.org 2>/dev/null | head -n 1)"
+                  ssh_directory="$RUNNER_TEMP/scoop-bridge-ssh"
+                  trap 'rm -rf "$ssh_directory"' EXIT
+                  install -m 700 -d "$ssh_directory"
+                  printf '%s\n' "$CODEBERG_SSH_KEY" | tr -d '\r' > "$ssh_directory/id_rsa"
+                  chmod 600 "$ssh_directory/id_rsa"
+
+                  host_key="$(ssh-keyscan -T 10 -t ed25519 codeberg.org 2>/dev/null | awk 'NR == 1 { print }')"
                   fingerprint="$(printf '%s\n' "$host_key" | ssh-keygen -lf - | awk '{ print $2 }')"
 
                   if [[ "$fingerprint" != "SHA256:mIlxA9k46MmM6qdJOdMnAQpzGxF4WIVVL+fj+wZbw0g" ]]; then
@@ -30,15 +38,9 @@ jobs:
                       exit 1
                   fi
 
-                  {
-                      echo "known-hosts<<EOF"
-                      printf '%s\n' "$host_key"
-                      echo "EOF"
-                  } >> "$GITHUB_OUTPUT"
-
-            - name: Mirror repository
-              uses: yesolutions/mirror-action@1708f16cdb28634fd3ba10c5c79abc91f5578a14 # v0.7.0
-              with:
-                  REMOTE: "git@codeberg.org:nostalgia/scoop-bridge.git"
-                  GIT_SSH_PRIVATE_KEY: ${{ secrets.CODEBERG }}
-                  GIT_SSH_KNOWN_HOSTS: ${{ steps.codeberg-host.outputs.known-hosts }}
+                  printf '%s\n' "$host_key" > "$ssh_directory/known_hosts"
+                  export GIT_SSH_COMMAND="ssh -i $ssh_directory/id_rsa -o IdentitiesOnly=yes -o UserKnownHostsFile=$ssh_directory/known_hosts -o StrictHostKeyChecking=yes"
+                  git remote add codeberg-mirror git@codeberg.org:nostalgia/scoop-bridge.git
+                  git push --force --prune codeberg-mirror \
+                      'refs/remotes/origin/*:refs/heads/*' \
+                      'refs/tags/*:refs/tags/*'
