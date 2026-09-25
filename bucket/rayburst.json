@@ -1,13 +1,8 @@
 {
-    "##": "Deprecate this manifest after 2027-01-01.",
     "version": "4.0.0",
-    "description": "A full-featured download manager — rebuilt from the ground up.",
+    "description": "A full-featured download manager — rebuilt from the ground up (Formerly known as Motrix Next).",
     "homepage": "https://rayburst.pages.dev",
     "license": "MIT",
-    "notes": [
-        "Motrix Next is now Rayburst. For more information, visit https://rayburst.pages.dev/",
-        "This manifest is deprecated and scheduled for removal on January 1, 2027. Please use `extras/rayburst` instead."
-    ],
     "architecture": {
         "64bit": {
             "url": "https://gh-proxy.org/https://github.com/AnInsomniacy/rayburst/releases/download/v4.0.0/Rayburst_4.0.0_x64-setup.exe#/dl.7z",
@@ -22,7 +17,7 @@
     "shortcuts": [
         [
             "rayburst.exe",
-            "Motrix Next (Renamed to rayburst; please reinstall)"
+            "Rayburst"
         ]
     ],
     "checkver": {
