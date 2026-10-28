@@ -1,13 +1,13 @@
 {
-    "version": "1.18.5",
+    "version": "1.18.7",
     "description": "Install and run Python applications in isolated environments",
     "homepage": "https://pipx.pypa.io/",
     "license": "MIT",
     "suggest": {
         "Python": "python"
     },
-    "url": "https://gh-proxy.org/https://github.com/pypa/pipx/releases/download/1.18.5/pipx.pyz",
-    "hash": "d2de0250b7674ca0a1ab0bc70a7ef3f318ea41474d31bd960eb7677367b2136f",
+    "url": "https://gh-proxy.org/https://github.com/pypa/pipx/releases/download/1.18.7/pipx.pyz",
+    "hash": "bc807df747117fa7f6a5e0c0dbbbd5c37146de92710dfc2dfa1105911621f46f",
     "pre_install": [
         "$cmd = $null",
         "foreach ($candidate in @('python', 'py')) {",
