@@ -1,16 +1,16 @@
 {
-    "version": "2.5.3",
+    "version": "2.5.6",
     "description": "AI-native, GPU-accelerated terminal emulator for Windows",
     "homepage": "https://github.com/Kuddev/pebrel",
     "license": "GPL-3.0-or-later",
     "architecture": {
         "64bit": {
-            "url": "https://gh-proxy.org/https://github.com/Kuddev/pebrel/releases/download/v2.5.3/Pebrel-v2.5.3-windows-x64.zip",
-            "hash": "c6d7faf53defa32fc43e596d5b8a34963ef6241e95d858762bea450d5f127141"
+            "url": "https://gh-proxy.org/https://github.com/Kuddev/pebrel/releases/download/v2.5.6/Pebrel-v2.5.6-windows-x64.zip",
+            "hash": "079c6409cd5fcf8bc173deb482e5a916bf99d8aedbd2a4c928babf1e768187cd"
         },
         "arm64": {
-            "url": "https://gh-proxy.org/https://github.com/Kuddev/pebrel/releases/download/v2.5.3/Pebrel-v2.5.3-windows-arm64.zip",
-            "hash": "a0eebce5bfd82b4e6832c5e6b235c1f6e3aa568143587718dbc9b4a7c0d9d91e"
+            "url": "https://gh-proxy.org/https://github.com/Kuddev/pebrel/releases/download/v2.5.6/Pebrel-v2.5.6-windows-arm64.zip",
+            "hash": "2d95e4641f9554cb8f8fd3df9ff32c6e72a2199d5a67c8f4242a2d1fdd1efc43"
         }
     },
     "env_set": {
