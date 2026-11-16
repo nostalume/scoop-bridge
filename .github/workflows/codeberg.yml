@@ -6,14 +6,13 @@ on:
             - "main"
     # Auto Update pushes with the default GITHUB_TOKEN, and such a push does not
     # start this workflow, so mirror from the workflow that performed the pushes.
+    # Every Auto Update completion retries the mirror, including when it had
+    # nothing to commit, so a failed mirror self-heals without its own schedule.
     workflow_run:
         workflows:
             - "Auto Update"
         types:
             - completed
-    # Without a scheduled attempt a failed mirror stays invisible until a human push.
-    schedule:
-        - cron: "0 */12 * * *"
     workflow_dispatch:
 
 permissions:
