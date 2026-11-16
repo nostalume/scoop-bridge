@@ -4,14 +4,32 @@ on:
     push:
         branches:
             - "main"
+    # Auto Update pushes with the default GITHUB_TOKEN, and such a push does not
+    # start this workflow, so mirror from the workflow that performed the pushes.
+    workflow_run:
+        workflows:
+            - "Auto Update"
+        types:
+            - completed
+    # Without a scheduled attempt a failed mirror stays invisible until a human push.
+    schedule:
+        - cron: "0 */12 * * *"
+    workflow_dispatch:
 
 permissions:
     contents: read
+
+concurrency:
+    group: mirror-codeberg
+    cancel-in-progress: false
 
 jobs:
     mirror:
         runs-on: ubuntu-latest
         timeout-minutes: 10
+        if: >-
+            github.event_name != 'workflow_run' ||
+            github.event.workflow_run.conclusion == 'success'
         steps:
             - name: Checkout repository
               uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -22,6 +40,9 @@ jobs:
               shell: bash
               env:
                   CODEBERG_SSH_KEY: ${{ secrets.CODEBERG }}
+                  # Pinned Codeberg host identity, SHA256:mIlxA9k46MmM6qdJOdMnAQpzGxF4WIVVL+fj+wZbw0g.
+                  # Replace this single line when Codeberg announces a host key rotation.
+                  CODEBERG_HOST_KEY: 'codeberg.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIVIC02vnjFyL+I4RHfvIGNtOgJMe769VTF1VR4EB3ZB'
               run: |
                   set -euo pipefail
                   ssh_directory="$RUNNER_TEMP/scoop-bridge-ssh"
@@ -30,15 +51,7 @@ jobs:
                   printf '%s\n' "$CODEBERG_SSH_KEY" | tr -d '\r' > "$ssh_directory/id_rsa"
                   chmod 600 "$ssh_directory/id_rsa"
 
-                  host_key="$(ssh-keyscan -T 10 -t ed25519 codeberg.org 2>/dev/null | awk 'NR == 1 { print }')"
-                  fingerprint="$(printf '%s\n' "$host_key" | ssh-keygen -lf - | awk '{ print $2 }')"
-
-                  if [[ "$fingerprint" != "SHA256:mIlxA9k46MmM6qdJOdMnAQpzGxF4WIVVL+fj+wZbw0g" ]]; then
-                      echo "Unexpected Codeberg SSH fingerprint: $fingerprint" >&2
-                      exit 1
-                  fi
-
-                  printf '%s\n' "$host_key" > "$ssh_directory/known_hosts"
+                  printf '%s\n' "$CODEBERG_HOST_KEY" > "$ssh_directory/known_hosts"
                   export GIT_SSH_COMMAND="ssh -i $ssh_directory/id_rsa -o IdentitiesOnly=yes -o UserKnownHostsFile=$ssh_directory/known_hosts -o StrictHostKeyChecking=yes"
                   git remote add codeberg-mirror git@codeberg.org:nostalgia/scoop-bridge.git
                   git push --force --prune codeberg-mirror \
