@@ -256,10 +256,19 @@ function Invoke-BucketAggregation {
         Write-Warning "Collision '$($collision.Path)': $($collision.Previous) -> $($collision.Current)"
     }
 
+    # A configured repository that ships no manifest stays invisible in the bucket,
+    # so report it instead of publishing a list that silently lies.
+    $contributed = @($provenance.Values | Select-Object -Unique)
+    $emptyRepositories = @($Repositories | Where-Object { $contributed -notcontains $_ })
+    foreach ($repository in $emptyRepositories) {
+        Write-Warning "Empty source '$repository': no manifest in bucket/ or the repository root"
+    }
+
     [PSCustomObject]@{
         OutputRoot = $outputRoot
         Clones = $clones
         Collisions = @($collisions)
+        EmptyRepositories = $emptyRepositories
     }
 }
 
@@ -389,6 +398,7 @@ function Invoke-Entry {
             ManifestCount = $validation.ManifestCount
             ChangedCount = $changedCount
             CollisionCount = $aggregation.Collisions.Count
+            EmptyRepositoryCount = $aggregation.EmptyRepositories.Count
         }
     } finally {
         if (Test-Path -LiteralPath $workspace) {

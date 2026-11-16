@@ -188,6 +188,25 @@ Describe 'Staged aggregation' {
         $manifest.version | Should -Be '2.0.0'
     }
 
+    It 'reports a configured repository that ships no manifest' {
+        Mock Invoke-GitClone {
+            param($Repository, $Destination)
+            if ($Repository -eq 'owner/empty') {
+                $null = New-Item -ItemType Directory -Path $Destination -Force
+            } else {
+                New-TestRepository -Destination $Destination -Version '1.0.0'
+            }
+        }
+
+        $context = New-TestContext -Repositories @('owner/source', 'owner/empty')
+        $stream = @(Invoke-Entry -Context $context -Root $script:Root 3>&1)
+        $result = $stream | Where-Object { $_ -isnot [System.Management.Automation.WarningRecord] }
+        $warnings = @($stream | Where-Object { $_ -is [System.Management.Automation.WarningRecord] })
+
+        $result.EmptyRepositoryCount | Should -Be 1
+        ($warnings.Message -join ' ') | Should -BeLike '*owner/empty*'
+    }
+
     It 'renames post-processed manifests instead of publishing both names' {
         Mock Invoke-GitClone {
             param($Repository, $Destination)
