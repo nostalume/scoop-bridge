@@ -14,6 +14,6 @@ Describe 'Tracked text line endings' {
             }
         )
 
-        $offenders | Should -BeEmpty -Because "CRLF in the index makes Git skip normalization: $($offenders -join ', ')"
+        ($offenders -join ', ') | Should -Be ''
     }
 }
