@@ -1,5 +1,5 @@
 {
-    "version": "0.4.980",
+    "version": "0.4.1001",
     "description": "A powerful harness of its own, and the best herdr GUI.",
     "homepage": "https://alma.now",
     "license": "Proprietary",
@@ -9,8 +9,8 @@
     },
     "architecture": {
         "64bit": {
-            "url": "https://gh-proxy.org/https://github.com/yetone/alma-releases/releases/download/v0.4.980/alma-0.4.980-win-x64.exe#/dl.7z",
-            "hash": "sha512:b6d1891a09da7a5fae53c0c9394c879a479a450331dbf61f70592c010dbdba32d6d8329338870f0ff80a84afe10411fc9afd1601bf7db2f9648f142a80ba7bc5"
+            "url": "https://gh-proxy.org/https://github.com/yetone/alma-releases/releases/download/v0.4.1001/alma-0.4.1001-win-x64.exe#/dl.7z",
+            "hash": "sha512:c1c5ff2459ae2899b1b1c091834652ae952c7fd4cd5923c8dd401c2e2acd123893ee6e3e8149b04995de285eeb2d447759f2374b7745690c358ab1b3e459dbec"
         }
     },
     "pre_install": [
